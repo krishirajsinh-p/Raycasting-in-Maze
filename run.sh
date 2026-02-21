@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DEV_MODE=1
+DEV_MODE=0
 
 RED="\033[1;31m"
 GREEN="\033[1;32m"
