@@ -15,7 +15,7 @@ print_success() {
 }
 
 print_msg() {
-    echo -e "${BLUE}➜ $1${NC}"
+    echo -e "${BLUE}$1${NC}"
 }
 
 print_warning() {

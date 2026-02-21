@@ -1,5 +1,7 @@
 #!/bin/bash
 
+DEV_MODE=1
+
 RED="\033[1;31m"
 GREEN="\033[1;32m"
 BLUE="\033[1;34m"
@@ -15,7 +17,7 @@ print_success() {
 }
 
 print_msg() {
-    echo -e "${BLUE}➜ $1${NC}"
+    echo -e "${BLUE}$1${NC}"
 }
 
 print_warning() {
@@ -23,64 +25,22 @@ print_warning() {
 }
 
 PROJECT_ROOT=$(git rev-parse --show-toplevel)
-
-PACKAGE_FILE="$PROJECT_ROOT/packages.txt"
 BUILD_DIR="$PROJECT_ROOT/build"
+BUILD_SCRIPT="$PROJECT_ROOT/build.sh"
 EXECUTABLE="$BUILD_DIR/Raycasting-in-Maze"
 
-print_msg "Starting build process..."
-echo ""
-
-if [ ! -f "$PACKAGE_FILE" ]; then
-    print_error "Package file $PACKAGE_FILE not found!"
-    exit 1
+if [ "$DEV_MODE" == "1" ]; then
+    print_warning "Development mode enabled. Rebuilding project..."
+    echo ""
+    rm -rf "$BUILD_DIR"
 fi
-
-print_msg "Checking required packages..."
-
-MISSING_PACKAGES=()
-while IFS= read -r package; do
-    if ! dpkg -s "$package" &> /dev/null; then
-        print_warning "Package $package is not installed."
-        MISSING_PACKAGES+=("$package")
-    else
-        print_success "Package $package is already installed. Skipping."
-    fi
-done < "$PACKAGE_FILE"
-
-if [ ${#MISSING_PACKAGES[@]} -ne 0 ]; then
-    print_msg "Installing missing packages..."
-    sudo apt update -qq &> /dev/null
-    sudo apt install -y "${MISSING_PACKAGES[@]}" -qq &> /dev/null
-    print_success "Dependencies installed."
-else
-    print_success "All dependencies are installed."
-fi
-
-echo ""
-
-if [ -d "$BUILD_DIR" ]; then
-    print_msg "build found. Rebuilding now..."
-else
-    print_msg "No build found. Building now..."
-    mkdir -p "$BUILD_DIR"
-fi
-
-cd "$BUILD_DIR"
-
-cmake -DCMAKE_BUILD_TYPE=Release .. &> /dev/null
-make -j$(nproc) &> /dev/null
-
-cd "$PROJECT_ROOT"
 
 if [ ! -f "$EXECUTABLE" ]; then
-    print_error "Build failed."
-    exit 1
-else
-    print_success "Build succeeded."
+    print_warning "Executable not found. Building project first..."
+    echo ""
+    "$BUILD_SCRIPT"
+    echo ""
 fi
 
-echo ""
-
-print_success "Running $EXECUTABLE..."
+print_msg "Running $EXECUTABLE..."
 "$EXECUTABLE"
